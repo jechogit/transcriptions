@@ -8,6 +8,7 @@ import srt
 import json
 import re
 from datetime import datetime, timedelta
+import argparse
 
 # 👇 Add this if moviepy was installed in user path (just in case)
 sys.path.append(os.path.expanduser('~/Library/Python/3.9/lib/python/site-packages'))
@@ -21,7 +22,6 @@ if not shutil.which("ffmpeg"):
 
 # --- Configuration ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-YOUTUBE_URL = 'https://www.youtube.com/watch?v=PZNg3TA6Osw'
 MODEL_PATH = '/Users/cristophergutierrez/programming/models/ggml-large-v3.bin'
 BASE_OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
 
@@ -53,7 +53,7 @@ def save_metadata(info, video_dir):
         'description': info['description'],
         'processed_date': datetime.now().isoformat(),
         'model_used': os.path.basename(MODEL_PATH),
-        'youtube_url': YOUTUBE_URL
+        'youtube_url': args.url
     }
     
     metadata_path = os.path.join(video_dir, 'metadata.json')
@@ -171,39 +171,54 @@ def generate_label_file(sentences, output_file):
 
 # --- Main ---
 def main():
-    # Create video-specific directory
-    info, audio = download_audio(YOUTUBE_URL, BASE_OUTPUT_DIR)
-    video_id = info['id']
-    video_dir = os.path.join(BASE_OUTPUT_DIR, video_id)
-    os.makedirs(video_dir, exist_ok=True)
+    parser = argparse.ArgumentParser(description='Process YouTube video and generate word-level subtitles')
+    parser.add_argument('url', help='YouTube video URL')
+    parser.add_argument('--model', default=MODEL_PATH,
+                      help=f'Path to whisper model (default: {MODEL_PATH})')
+    parser.add_argument('--output', default=BASE_OUTPUT_DIR,
+                      help=f'Output directory (default: {BASE_OUTPUT_DIR})')
     
-    # Save metadata
-    metadata_path = save_metadata(info, video_dir)
+    global args
+    args = parser.parse_args()
     
-    # Move audio file to video directory
-    shutil.move(audio, os.path.join(video_dir, f"{video_id}.mp3"))
-    audio = os.path.join(video_dir, f"{video_id}.mp3")
+    try:
+        # Create video-specific directory
+        info, audio = download_audio(args.url, args.output)
+        video_id = info['id']
+        video_dir = os.path.join(args.output, video_id)
+        os.makedirs(video_dir, exist_ok=True)
+        
+        # Save metadata
+        metadata_path = save_metadata(info, video_dir)
+        
+        # Move audio file to video directory
+        shutil.move(audio, os.path.join(video_dir, f"{video_id}.mp3"))
+        audio = os.path.join(video_dir, f"{video_id}.mp3")
 
-    print("🧠 Transcribing with whisper.cpp...")
-    transcribe_whisper_cpp(audio, MODEL_PATH, video_dir)
+        print("🧠 Transcribing with whisper.cpp...")
+        transcribe_whisper_cpp(audio, args.model, video_dir)
 
-    srt_path = os.path.join(video_dir, 'transcription.srt')
-    print("📖 Parsing word-level timestamps...")
-    segments = parse_word_timestamps(srt_path)
+        srt_path = os.path.join(video_dir, 'transcription.srt')
+        print("📖 Parsing word-level timestamps...")
+        segments = parse_word_timestamps(srt_path)
 
-    print("✂️ Slicing audio...")
-    sd = os.path.join(video_dir, 'sentences')
-    meta = slice_audio(audio, segments, sd)
+        print("✂️ Slicing audio...")
+        sd = os.path.join(video_dir, 'sentences')
+        meta = slice_audio(audio, segments, sd)
 
-    print("🏷️ Generating label file for Audacity...")
-    labels = os.path.join(sd, 'labels.txt')
-    generate_label_file(meta, labels)
+        print("🏷️ Generating label file for Audacity...")
+        labels = os.path.join(sd, 'labels.txt')
+        generate_label_file(meta, labels)
 
-    print(f"\n✅ Done! Output in: {video_dir}")
-    print(f"📋 Metadata: {metadata_path}")
-    print(f"🎧 Sentences in: {sd}")
-    print(f"📄 Labels: {labels}")
-    print(f"📝 Subtitles: {srt_path}")
+        print(f"\n✅ Done! Output in: {video_dir}")
+        print(f"📋 Metadata: {metadata_path}")
+        print(f"🎧 Sentences in: {sd}")
+        print(f"📄 Labels: {labels}")
+        print(f"📝 Subtitles: {srt_path}")
+        
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
