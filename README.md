@@ -1,15 +1,15 @@
-# Audio Transcription and Word-Level Subtitle Generator
+# YouTube Segment Extractor
 
-Este script procesa videos de YouTube para generar transcripciones con subtítulos a nivel de palabra, perfectos para usar con Audacity.
+Este script permite extraer y transcribir segmentos específicos de videos de YouTube, generando subtítulos a nivel de palabra perfectos para practicar.
 
 ## Características
 
-- Descarga audio de videos de YouTube
+- Extrae segmentos específicos de videos de YouTube
+- Descarga solo la parte del audio que necesitas
 - Transcribe el audio usando whisper.cpp
 - Genera subtítulos a nivel de palabra (SRT)
-- Crea segmentos de audio con sus respectivos subtítulos
 - Mantiene la sincronización precisa entre audio y texto
-- Organiza los archivos por video en carpetas separadas
+- Guarda metadatos del segmento extraído
 
 ## Requisitos
 
@@ -31,7 +31,7 @@ srt
 1. Clona este repositorio:
 ```bash
 git clone [URL_DEL_REPOSITORIO]
-cd [NOMBRE_DEL_REPOSITORIO]
+cd youtube-segment-extractor
 ```
 
 2. Crea y activa un entorno virtual:
@@ -64,34 +64,50 @@ cp main ../whisper-cli
 
 ## Uso
 
-1. Coloca tu modelo GGML (ggml-large-v3.bin) en el directorio del proyecto
-2. Modifica la URL del video en el script
-3. Ejecuta el script:
 ```bash
-python script.py
+python extract_segment.py [URL] [TIEMPO_INICIO] [TIEMPO_FIN] [OPCIONES]
+```
+
+### Argumentos
+
+- `URL`: URL del video de YouTube
+- `TIEMPO_INICIO`: Tiempo de inicio en formato MM:SS o HH:MM:SS
+- `TIEMPO_FIN`: Tiempo de fin en formato MM:SS o HH:MM:SS
+
+### Opciones
+
+- `--model`: Ruta al modelo de whisper (por defecto: /Users/cristophergutierrez/programming/models/ggml-large-v3.bin)
+- `--output`: Directorio de salida (por defecto: output)
+
+### Ejemplos
+
+```bash
+# Extraer segmento de 1:30 a 2:45
+python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30" "2:45"
+
+# Extraer segmento de 1:30:00 a 1:35:00
+python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30:00" "1:35:00"
+
+# Especificar modelo y directorio de salida
+python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30" "2:45" --model "/ruta/al/modelo.bin" --output "mis_segmentos"
 ```
 
 ## Estructura de Salida
 
 ```
 output/
-└── [VIDEO_ID]/
+└── segment_[INICIO]-[FIN]/
     ├── metadata.json
     ├── [VIDEO_ID].mp3
-    ├── transcription.srt
-    └── sentences/
-        ├── sentence_001.wav
-        ├── sentence_001.srt
-        ├── sentence_002.wav
-        ├── sentence_002.srt
-        └── labels.txt
+    └── transcription.srt
 ```
 
 ## Notas
 
-- Los segmentos de audio se generan con una duración entre 2 y 10 segundos
-- Cada archivo SRT contiene los timestamps precisos para cada palabra
-- Los archivos de etiquetas están en formato compatible con Audacity
+- Los tiempos pueden especificarse en formato MM:SS o HH:MM:SS
+- El script validará que los tiempos estén dentro de la duración del video
+- Los subtítulos se generan con timestamps precisos para cada palabra
+- Los archivos de audio se guardan en formato MP3 con calidad 192kbps
 
 ## Licencia
 
