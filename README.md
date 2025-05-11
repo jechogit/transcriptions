@@ -1,12 +1,22 @@
-# YouTube Segment Extractor
+# YouTube Audio Processing Tools
 
-Este script permite extraer y transcribir segmentos específicos de videos de YouTube, generando subtítulos a nivel de palabra perfectos para practicar.
+Este repositorio contiene dos herramientas para procesar audio de YouTube:
+
+1. **Procesador de Video Completo**: Genera subtítulos a nivel de palabra para todo el video
+2. **Extractor de Segmentos**: Extrae y transcribe segmentos específicos de un video
 
 ## Características
 
+### Procesador de Video Completo (`script.py`)
+- Descarga y procesa videos completos de YouTube
+- Genera subtítulos a nivel de palabra (SRT)
+- Divide el audio en segmentos de 2-10 segundos
+- Crea archivos de etiquetas para Audacity
+- Organiza los archivos por video en carpetas separadas
+
+### Extractor de Segmentos (`extract_segment.py`)
 - Extrae segmentos específicos de videos de YouTube
 - Descarga solo la parte del audio que necesitas
-- Transcribe el audio usando whisper.cpp
 - Genera subtítulos a nivel de palabra (SRT)
 - Mantiene la sincronización precisa entre audio y texto
 - Guarda metadatos del segmento extraído
@@ -30,8 +40,8 @@ srt
 
 1. Clona este repositorio:
 ```bash
-git clone [URL_DEL_REPOSITORIO]
-cd youtube-segment-extractor
+git clone https://github.com/jechogit/transcriptions.git
+cd transcriptions
 ```
 
 2. Crea y activa un entorno virtual:
@@ -64,36 +74,66 @@ cp main ../whisper-cli
 
 ## Uso
 
+### 1. Procesar Video Completo
+
+```bash
+python script.py [URL] [OPCIONES]
+```
+
+#### Argumentos
+- `URL`: URL del video de YouTube
+
+#### Opciones
+- `--model`: Ruta al modelo de whisper (por defecto: /Users/cristophergutierrez/programming/models/ggml-large-v3.bin)
+- `--output`: Directorio de salida (por defecto: output)
+
+#### Ejemplo
+```bash
+python script.py "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+### 2. Extraer Segmento Específico
+
 ```bash
 python extract_segment.py [URL] [TIEMPO_INICIO] [TIEMPO_FIN] [OPCIONES]
 ```
 
-### Argumentos
-
+#### Argumentos
 - `URL`: URL del video de YouTube
 - `TIEMPO_INICIO`: Tiempo de inicio en formato MM:SS o HH:MM:SS
 - `TIEMPO_FIN`: Tiempo de fin en formato MM:SS o HH:MM:SS
 
-### Opciones
-
+#### Opciones
 - `--model`: Ruta al modelo de whisper (por defecto: /Users/cristophergutierrez/programming/models/ggml-large-v3.bin)
 - `--output`: Directorio de salida (por defecto: output)
 
-### Ejemplos
-
+#### Ejemplos
 ```bash
 # Extraer segmento de 1:30 a 2:45
 python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30" "2:45"
 
 # Extraer segmento de 1:30:00 a 1:35:00
 python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30:00" "1:35:00"
-
-# Especificar modelo y directorio de salida
-python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30" "2:45" --model "/ruta/al/modelo.bin" --output "mis_segmentos"
 ```
 
 ## Estructura de Salida
 
+### Procesador de Video Completo
+```
+output/
+└── [VIDEO_ID]/
+    ├── metadata.json
+    ├── [VIDEO_ID].mp3
+    ├── transcription.srt
+    └── sentences/
+        ├── sentence_001.wav
+        ├── sentence_001.srt
+        ├── sentence_002.wav
+        ├── sentence_002.srt
+        └── labels.txt
+```
+
+### Extractor de Segmentos
 ```
 output/
 └── segment_[INICIO]-[FIN]/
@@ -105,9 +145,9 @@ output/
 ## Notas
 
 - Los tiempos pueden especificarse en formato MM:SS o HH:MM:SS
-- El script validará que los tiempos estén dentro de la duración del video
 - Los subtítulos se generan con timestamps precisos para cada palabra
 - Los archivos de audio se guardan en formato MP3 con calidad 192kbps
+- Los archivos de etiquetas están en formato compatible con Audacity
 
 ## Licencia
 
