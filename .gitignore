@@ -48,4 +48,15 @@ output/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# whisper.cpp specific
+whisper.cpp/
+whisper-cli
+main
+*.o
+*.a
+*.dylib
+*.so
+*.dll
+*.exe 
