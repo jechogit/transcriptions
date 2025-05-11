@@ -1,9 +1,10 @@
 # YouTube Audio Processing Tools
 
-Este repositorio contiene dos herramientas para procesar audio de YouTube:
+Este repositorio contiene tres herramientas para procesar audio de YouTube:
 
-1. **Procesador de Video Completo**: Genera subtítulos a nivel de palabra para todo el video
+1. **Procesador de Video Completo**: Genera subtítulos a nivel de palabra y divide el audio en segmentos
 2. **Extractor de Segmentos**: Extrae y transcribe segmentos específicos de un video
+3. **Descargador Completo**: Descarga el audio completo y genera subtítulos sin dividir en segmentos
 
 ## Características
 
@@ -20,6 +21,13 @@ Este repositorio contiene dos herramientas para procesar audio de YouTube:
 - Genera subtítulos a nivel de palabra (SRT)
 - Mantiene la sincronización precisa entre audio y texto
 - Guarda metadatos del segmento extraído
+
+### Descargador Completo (`download_full.py`)
+- Descarga el audio completo del video
+- Genera subtítulos a nivel de palabra (SRT)
+- No divide el audio en segmentos
+- Ideal para videos cortos o cuando se necesita el audio completo
+- Guarda metadatos del video
 
 ## Requisitos
 
@@ -116,6 +124,24 @@ python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30" "2:4
 python extract_segment.py "https://www.youtube.com/watch?v=VIDEO_ID" "1:30:00" "1:35:00"
 ```
 
+### 3. Descargar Audio Completo
+
+```bash
+python download_full.py [URL] [OPCIONES]
+```
+
+#### Argumentos
+- `URL`: URL del video de YouTube
+
+#### Opciones
+- `--model`: Ruta al modelo de whisper (por defecto: /Users/cristophergutierrez/programming/models/ggml-large-v3.bin)
+- `--output`: Directorio de salida (por defecto: output)
+
+#### Ejemplo
+```bash
+python download_full.py "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
 ## Estructura de Salida
 
 ### Procesador de Video Completo
@@ -137,6 +163,15 @@ output/
 ```
 output/
 └── segment_[INICIO]-[FIN]/
+    ├── metadata.json
+    ├── [VIDEO_ID].mp3
+    └── transcription.srt
+```
+
+### Descargador Completo
+```
+output/
+└── [VIDEO_ID]/
     ├── metadata.json
     ├── [VIDEO_ID].mp3
     └── transcription.srt
